@@ -36,8 +36,10 @@ WORKDIR /masked-lm-wasm
 
 # download and convert bert model
 RUN pip install torch transformers && pip show transformers
+RUN pip install onnxruntime
 RUN mkdir tmp \
-  && python /usr/local/lib/python3.9/site-packages/transformers/convert_graph_to_onnx.py --pipeline fill-mask --model bert-base-cased --framework pt tmp/bert-masked.onnx
+  && python -m transformers.onnx --feature masked-lm --m bert-base-cased tmp/bert-masked.onnx || true
+RUN mv tmp/bert-masked.onnx/model.onnx maskedlm/bert-masked.onnx && rmdir tmp/bert-masked.onnx
 
 # download vocab.txt
 RUN cd tmp && curl -o vocab.txt https://huggingface.co/bert-base-cased/raw/main/vocab.txt
